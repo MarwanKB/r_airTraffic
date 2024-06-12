@@ -10,8 +10,8 @@ library(RMySQL)
 host <- "mysql-traffic-aerien.alwaysdata.net"
 port <- 3306
 dbname <- "traffic-aerien_projet"
-user <- "363257_user"
-password <- "root_marwan"
+user <- ""
+password <- ""
 
 # Establish the connection
 con <- dbConnect(
