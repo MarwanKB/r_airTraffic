@@ -22,6 +22,7 @@ ui <- navbarPage(
   # Page d'accueil
   tabPanel("Accueil",
            fluidPage(
+<<<<<<< HEAD
              tags$head(
                tags$style(HTML("
                  .title {
@@ -98,6 +99,32 @@ ui <- navbarPage(
                  
              )
              
+=======
+             div(
+               h1("Projet Trafic Aérien", style = "color: blue; text-align: center; z-index: 1; position: relative;"),
+               p("Bienvenue sur notre projet de visualisation et d'analyse prédictive du trafic. Ce projet a pour but de fournir des insights utiles à la prise de décision à partir des données historiques de trafic.", style = "text-align: center; z-index: 1; position: relative;"),
+               img(src = "https://th.bing.com/th/id/OIP.89XJfg4a1BIJRLWPjsWtRgHaE8?rs=1&pid=ImgDetMain", height = "300px", style = "display: block; margin-left: auto; margin-right: auto;"), 
+               br(),
+               div(class = "team-section", style = "display: flex;",
+                   div(class = "team-member", style = "margin-right: 50px; margin-left: 250px;",
+                       img(src = "https://thumbs.dreamstime.com/b/muestra-masculina-de-person-symbol-profile-circle-avatar-del-vector-icono-usuario-115922591.jpg", alt = "Liticia", width = "200px", height = "200px"),
+                       p("Liticia", style = "margin-top: -20px; text-align: center;")
+                   ),
+                   div(class = "team-member", style = "margin-right: 50px;",
+                       img(src = "https://thumbs.dreamstime.com/b/muestra-masculina-de-person-symbol-profile-circle-avatar-del-vector-icono-usuario-115922591.jpg", alt = "Marwan", width = "200px", height = "200px"),
+                       p("Marwan", style = "margin-top: -20px; text-align: center;")
+                   ),
+                   div(class = "team-member", style = "margin-right: 50px;",
+                       img(src = "https://thumbs.dreamstime.com/b/muestra-masculina-de-person-symbol-profile-circle-avatar-del-vector-icono-usuario-115922591.jpg", alt = "Dorcas", width = "200px", height = "200px"),
+                       p("Dorcas", style = "margin-top: -20px; text-align: center;")
+                   ),
+                   div(class = "team-member",
+                       img(src = "https://thumbs.dreamstime.com/b/muestra-masculina-de-person-symbol-profile-circle-avatar-del-vector-icono-usuario-115922591.jpg", alt = "Rabab", width = "200px", height = "200px"),
+                       p("Rabab", style = "margin-top: -20px; text-align: center;")
+                   )
+               )
+             )
+>>>>>>> f756b5374e8d24cba572b969dc712cb7934cf490
            )),
   
   # Page Q/A
@@ -138,7 +165,10 @@ ui <- navbarPage(
 
 # Serveur
 server <- function(input, output, session) {
+<<<<<<< HEAD
   
+=======
+>>>>>>> f756b5374e8d24cba572b969dc712cb7934cf490
   # Requête pour récupérer le nombre de destinations desservies par chaque compagnie aérienne
   airline_destinations <- dbGetQuery(con, "
     SELECT a.name AS airline, COUNT(DISTINCT f.dest) AS destinations_count
@@ -155,6 +185,7 @@ server <- function(input, output, session) {
     GROUP BY a.name, f.origin
   ")
   
+<<<<<<< HEAD
   # Requête pour récupérer la relation entre la distance et le retard moyen à l'arrivée
   delay_distance <- dbGetQuery(con, "
     SELECT distance, AVG(arr_delay) AS mean_delay
@@ -174,6 +205,8 @@ server <- function(input, output, session) {
     LIMIT 10
   ")
   
+=======
+>>>>>>> f756b5374e8d24cba572b969dc712cb7934cf490
   # Graphique du nombre de destinations desservies par chaque compagnie aérienne
   output$plot1 <- renderPlot({
     ggplot(airline_destinations, aes(x = reorder(airline, -destinations_count), y = destinations_count)) +
@@ -190,6 +223,7 @@ server <- function(input, output, session) {
       labs(title = "Nombre de Destinations Desservies par Chaque Compagnie Aérienne par Aéroport d'Origine", x = "Compagnie Aérienne", y = "Nombre de Destinations") +
       theme_minimal() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
+<<<<<<< HEAD
   })
   
   # Graphique de la relation entre la distance et le retard moyen à l'arrivée
@@ -213,6 +247,8 @@ server <- function(input, output, session) {
            fill = "Compagnie Aérienne") +
       theme_minimal() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
+=======
+>>>>>>> f756b5374e8d24cba572b969dc712cb7934cf490
   })
   
   # Exemples de prédictions
