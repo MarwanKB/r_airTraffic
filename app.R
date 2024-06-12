@@ -6,6 +6,9 @@ library(shinythemes)
 library(DBI)
 library(RMySQL)
 library(ggplot2)
+library(leaflet)
+library(dplyr)
+library(plotly)
 
 # Connexion à la base de données (ajustez les paramètres selon vos besoins)
 con <- dbConnect(RMySQL::MySQL(), 
@@ -22,7 +25,6 @@ ui <- navbarPage(
   # Page d'accueil
   tabPanel("Accueil",
            fluidPage(
-<<<<<<< HEAD
              tags$head(
                tags$style(HTML("
                  .title {
@@ -99,32 +101,6 @@ ui <- navbarPage(
                  
              )
              
-=======
-             div(
-               h1("Projet Trafic Aérien", style = "color: blue; text-align: center; z-index: 1; position: relative;"),
-               p("Bienvenue sur notre projet de visualisation et d'analyse prédictive du trafic. Ce projet a pour but de fournir des insights utiles à la prise de décision à partir des données historiques de trafic.", style = "text-align: center; z-index: 1; position: relative;"),
-               img(src = "https://th.bing.com/th/id/OIP.89XJfg4a1BIJRLWPjsWtRgHaE8?rs=1&pid=ImgDetMain", height = "300px", style = "display: block; margin-left: auto; margin-right: auto;"), 
-               br(),
-               div(class = "team-section", style = "display: flex;",
-                   div(class = "team-member", style = "margin-right: 50px; margin-left: 250px;",
-                       img(src = "https://thumbs.dreamstime.com/b/muestra-masculina-de-person-symbol-profile-circle-avatar-del-vector-icono-usuario-115922591.jpg", alt = "Liticia", width = "200px", height = "200px"),
-                       p("Liticia", style = "margin-top: -20px; text-align: center;")
-                   ),
-                   div(class = "team-member", style = "margin-right: 50px;",
-                       img(src = "https://thumbs.dreamstime.com/b/muestra-masculina-de-person-symbol-profile-circle-avatar-del-vector-icono-usuario-115922591.jpg", alt = "Marwan", width = "200px", height = "200px"),
-                       p("Marwan", style = "margin-top: -20px; text-align: center;")
-                   ),
-                   div(class = "team-member", style = "margin-right: 50px;",
-                       img(src = "https://thumbs.dreamstime.com/b/muestra-masculina-de-person-symbol-profile-circle-avatar-del-vector-icono-usuario-115922591.jpg", alt = "Dorcas", width = "200px", height = "200px"),
-                       p("Dorcas", style = "margin-top: -20px; text-align: center;")
-                   ),
-                   div(class = "team-member",
-                       img(src = "https://thumbs.dreamstime.com/b/muestra-masculina-de-person-symbol-profile-circle-avatar-del-vector-icono-usuario-115922591.jpg", alt = "Rabab", width = "200px", height = "200px"),
-                       p("Rabab", style = "margin-top: -20px; text-align: center;")
-                   )
-               )
-             )
->>>>>>> f756b5374e8d24cba572b969dc712cb7934cf490
            )),
   
   # Page Q/A
@@ -149,10 +125,13 @@ ui <- navbarPage(
   tabPanel("Visualisations",
            fluidPage(
              h2("Visualisations", style = "color: black; text-align: center;"),
-             plotOutput("plot1"),
-             plotOutput("plot2"),
-             plotOutput("plot3"),
-             plotOutput("plot4")
+             plotlyOutput("plot1"),
+             plotlyOutput("plot2"),
+             plotlyOutput("plot3"),
+             plotlyOutput("plot4"),
+             plotlyOutput("plot5"),
+             plotlyOutput("plot6"),
+             plotlyOutput("plot7")
            )),
   
   # Page Prédictions
@@ -165,10 +144,7 @@ ui <- navbarPage(
 
 # Serveur
 server <- function(input, output, session) {
-<<<<<<< HEAD
   
-=======
->>>>>>> f756b5374e8d24cba572b969dc712cb7934cf490
   # Requête pour récupérer le nombre de destinations desservies par chaque compagnie aérienne
   airline_destinations <- dbGetQuery(con, "
     SELECT a.name AS airline, COUNT(DISTINCT f.dest) AS destinations_count
@@ -185,7 +161,6 @@ server <- function(input, output, session) {
     GROUP BY a.name, f.origin
   ")
   
-<<<<<<< HEAD
   # Requête pour récupérer la relation entre la distance et le retard moyen à l'arrivée
   delay_distance <- dbGetQuery(con, "
     SELECT distance, AVG(arr_delay) AS mean_delay
@@ -205,10 +180,9 @@ server <- function(input, output, session) {
     LIMIT 10
   ")
   
-=======
->>>>>>> f756b5374e8d24cba572b969dc712cb7934cf490
+
   # Graphique du nombre de destinations desservies par chaque compagnie aérienne
-  output$plot1 <- renderPlot({
+  output$plot1 <- renderPlotly({
     ggplot(airline_destinations, aes(x = reorder(airline, -destinations_count), y = destinations_count)) +
       geom_bar(stat = "identity") +
       labs(title = "Nombre de Destinations Desservies par Chaque Compagnie Aérienne", x = "Compagnie Aérienne", y = "Nombre de Destinations") +
@@ -217,17 +191,16 @@ server <- function(input, output, session) {
   })
   
   # Graphique du nombre de destinations desservies par chaque compagnie aérienne par aéroport d'origine
-  output$plot2 <- renderPlot({
+  output$plot2 <- renderPlotly({
     ggplot(airline_destinations_by_origin, aes(x = reorder(airline, -destinations_count), y = destinations_count, fill = origin_airport)) +
       geom_bar(stat = "identity", position = "dodge") +
       labs(title = "Nombre de Destinations Desservies par Chaque Compagnie Aérienne par Aéroport d'Origine", x = "Compagnie Aérienne", y = "Nombre de Destinations") +
       theme_minimal() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
-<<<<<<< HEAD
   })
   
   # Graphique de la relation entre la distance et le retard moyen à l'arrivée
-  output$plot3 <- renderPlot({
+  output$plot3 <- renderPlotly({
     ggplot(delay_distance, aes(x = distance, y = mean_delay)) +
       geom_point() + 
       geom_smooth(method = "lm", se = FALSE) +
@@ -238,7 +211,7 @@ server <- function(input, output, session) {
   })
   
   # Graphique des destinations les plus touchées par les retards
-  output$plot4 <- renderPlot({
+  output$plot4 <- renderPlotly({
     ggplot(top_delayed_destinations, aes(x = reorder(destination, -avg_delay), y = avg_delay, fill = airline)) +
       geom_bar(stat = "identity") +
       labs(title = "Destinations les Plus Touchées par les Retards",
@@ -247,9 +220,99 @@ server <- function(input, output, session) {
            fill = "Compagnie Aérienne") +
       theme_minimal() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
-=======
->>>>>>> f756b5374e8d24cba572b969dc712cb7934cf490
   })
+  
+  # Requête SQL pour agréger les données par mois et obtenir le nombre de vols par mois
+  monthly_traffic <- dbGetQuery(con, "
+  SELECT MONTH(time_hour) AS month, COUNT(*) AS num_flights
+  FROM flights
+  GROUP BY MONTH(time_hour)
+  ")
+  
+  # Création du graphique interactif avec Plotly
+  output$plot5 <- renderPlotly({
+    plot_ly(monthly_traffic, x = ~month, y = ~num_flights, type = 'scatter', mode = 'lines+markers') %>%
+      layout(title = "Évolution du trafic aéroportuaire par mois",
+             xaxis = list(title = "Mois"),
+             yaxis = list(title = "Nombre de vols"))
+  })
+  
+  
+  #############plot6#################
+  # Requête SQL pour filtrer les vols selon différentes conditions et obtenir le nombre de vols correspondant à chaque critère
+  filtered_flights <- list()
+  
+  # Filtrer les vols pour le 1er janvier
+  filtered_flights$january_1st <- dbGetQuery(con, "
+  SELECT COUNT(*) AS num_flights
+  FROM flights
+  WHERE MONTH(time_hour) = 1 AND DAY(time_hour) = 1
+")
+  
+  # Filtrer les vols pour novembre ou décembre
+  filtered_flights$november_december <- dbGetQuery(con, "
+  SELECT COUNT(*) AS num_flights
+  FROM flights
+  WHERE MONTH(time_hour) IN (11, 12)
+")
+  
+  # Filtrer les vols pour les jours spéciaux (25/12, 01/01, 04/07, 29/11)
+  filtered_flights$special_days <- dbGetQuery(con, "
+  SELECT COUNT(*) AS num_flights
+  FROM flights
+  WHERE DATE(time_hour) IN ('2024-12-25', '2025-01-01', '2025-07-04', '2025-11-29')
+")
+  
+  # Filtrer les vols pour l'été (juillet, août et septembre)
+  filtered_flights$summer <- dbGetQuery(con, "
+  SELECT COUNT(*) AS num_flights
+  FROM flights
+  WHERE MONTH(time_hour) IN (7, 8, 9)
+")
+  
+  # Filtrer les vols pour l'heure de départ entre minuit et 6h
+  filtered_flights$midnight_to_six <- dbGetQuery(con, "
+  SELECT COUNT(*) AS num_flights
+  FROM flights
+  WHERE HOUR(sched_dep_time) BETWEEN 0 AND 6
+")
+  
+  # Création des visualisations pour illustrer les résultats
+  output$plot6 <- renderPlotly({
+    labels <- c("1er janvier", "Novembre ou Décembre", "Jours spéciaux", "Été", "Départ entre minuit et 6h")
+    values <- c(filtered_flights$january_1st$num_flights, filtered_flights$november_december$num_flights,
+                filtered_flights$special_days$num_flights, filtered_flights$summer$num_flights,
+                filtered_flights$midnight_to_six$num_flights)
+    
+    plot_ly(labels = labels, values = values, type = 'pie') %>%
+      layout(title = "Nombre de vols selon différentes conditions")
+  })
+  
+  #############plot7###########
+  # Requête SQL pour obtenir les données sur les retards de départ
+  delay_data <- dbGetQuery(con, "
+  SELECT HOUR(sched_dep_time) AS dep_hour, dep_delay
+  FROM flights
+")
+  
+  # Filtrage des valeurs manquantes côté R
+  delay_data <- na.omit(delay_data)
+  
+  # Calcul du retard moyen par heure de décollage
+  delay_by_hour <- aggregate(dep_delay ~ dep_hour, data = delay_data, FUN = mean)
+  
+  # Création du plot7 pour illustrer la relation entre l'heure de décollage et le retard moyen
+  output$plot7 <- renderPlotly({
+    ggplot(delay_by_hour, aes(x = dep_hour, y = dep_delay)) +
+      geom_point() +
+      geom_smooth(method = "lm", se = FALSE) +
+      labs(title = "Relation entre l'heure de décollage et le retard moyen",
+           x = "Heure de décollage",
+           y = "Retard moyen (minutes)") +
+      theme_minimal()
+  })
+  
+  
   
   # Exemples de prédictions
   output$predictions <- renderTable({
