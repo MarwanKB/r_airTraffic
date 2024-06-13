@@ -78,3 +78,51 @@ CREATE TABLE flights (
     CONSTRAINT chk_origin_format CHECK (origin REGEXP '^[A-Z]{3}$'),
     CONSTRAINT chk_dest_format CHECK (dest REGEXP '^[A-Z]{3}$')
 );
+
+-- Vérifier les types de colonnes
+ALTER TABLE airports MODIFY faa CHAR(3) NOT NULL;
+ALTER TABLE weather MODIFY origin CHAR(3) NOT NULL;
+ALTER TABLE planes MODIFY tailnum VARCHAR(10) NOT NULL;
+ALTER TABLE airlines MODIFY carrier CHAR(2) NOT NULL;
+ALTER TABLE flights MODIFY carrier CHAR(2) NOT NULL;
+ALTER TABLE flights MODIFY tailnum VARCHAR(10) NOT NULL;
+ALTER TABLE flights MODIFY origin CHAR(3) NOT NULL;
+ALTER TABLE flights MODIFY dest CHAR(3) NOT NULL;
+
+-- Réassigner les clés primaires
+ALTER TABLE airports ADD PRIMARY KEY (faa);
+ALTER TABLE planes ADD PRIMARY KEY (tailnum);
+ALTER TABLE airlines ADD PRIMARY KEY (carrier);
+ALTER TABLE weather ADD PRIMARY KEY (year, month, day, hour, origin);
+ALTER TABLE flights ADD PRIMARY KEY (id);
+
+-- Réassigner les clés étrangères
+ALTER TABLE weather 
+ADD CONSTRAINT fk_weather_origin 
+FOREIGN KEY (origin) REFERENCES airports(faa);
+
+ALTER TABLE flights 
+ADD CONSTRAINT fk_flights_carrier 
+FOREIGN KEY (carrier) REFERENCES airlines(carrier);
+
+ALTER TABLE flights 
+ADD CONSTRAINT fk_flights_tailnum 
+FOREIGN KEY (tailnum) REFERENCES planes(tailnum);
+
+ALTER TABLE flights 
+ADD CONSTRAINT fk_flights_origin 
+FOREIGN KEY (origin) REFERENCES airports(faa);
+
+ALTER TABLE flights 
+ADD CONSTRAINT fk_flights_dest 
+FOREIGN KEY (dest) REFERENCES airports(faa);
+
+-- Ajout des contraintes de format (CHECK)
+ALTER TABLE airports ADD CONSTRAINT chk_faa_format CHECK (faa REGEXP '^[A-Z]{3}$');
+ALTER TABLE planes ADD CONSTRAINT chk_tailnum_format CHECK (tailnum REGEXP '^[A-Z0-9]{3,10}$');
+ALTER TABLE airlines ADD CONSTRAINT chk_carrier_format CHECK (carrier REGEXP '^[A-Z0-9]{2}$');
+ALTER TABLE weather ADD CONSTRAINT chk_origin_format CHECK (origin REGEXP '^[A-Z]{3}$');
+ALTER TABLE flights ADD CONSTRAINT chk_carrier_format CHECK (carrier REGEXP '^[A-Z0-9]{2}$');
+ALTER TABLE flights ADD CONSTRAINT chk_tailnum_format CHECK (tailnum REGEXP '^[A-Z0-9]{3,10}$');
+ALTER TABLE flights ADD CONSTRAINT chk_origin_format CHECK (origin REGEXP '^[A-Z]{3}$');
+ALTER TABLE flights ADD CONSTRAINT chk_dest_format CHECK (dest REGEXP '^[A-Z]{3}$');
