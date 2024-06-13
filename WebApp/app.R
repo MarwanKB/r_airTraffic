@@ -181,10 +181,17 @@ ui <- navbarPage(
   tabPanel("Prédictions",
            fluidPage(
              h2("Résultats de Prédiction", style = "color: black; text-align: center;"),
+             numericInput("distance", "Distance (miles):", value = 100),
+             numericInput("dep_delay", "Retard au Départ (minutes):", value = 10),
+             numericInput("air_time", "Temps de Vol (minutes):", value = 60),
+             selectInput("carrier", "Compagnie Aérienne:", choices = unique(flights$carrier)),
+             selectInput("origin", "Aéroport de Départ:", choices = unique(flights$origin)),
+             selectInput("dest", "Aéroport d'Arrivée:", choices = unique(flights$dest)),
+             actionButton("predict_btn", "Prédire le Retard à l'Arrivée"),
+             br(),
              tableOutput("predictions")
            )),
-
-
+  
 
   # Footer
   tags$footer(
@@ -195,6 +202,55 @@ ui <- navbarPage(
 
 # Serveur
 server <- function(input, output, session) {
+  
+  ####################Prédictions########################
+  
+  # Charger le modèle de régression linéaire
+  linear_model_delay <- readRDS("C:/Users/litic/Downloads/linear_model_delay.rds")
+  
+  # Fonction de prédiction
+  predict_delay <- function(distance, dep_delay, air_time, carrier, origin, dest) {
+    new_data <- data.frame(distance = distance, dep_delay = dep_delay, air_time = air_time, carrier = carrier, origin = origin, dest = dest)
+    prediction <- predict(linear_model_delay, newdata = new_data)
+    return(prediction)
+  }
+  
+  # Réactivité pour les prédictions
+  observeEvent(input$predict_btn, {
+    distance <- input$distance
+    dep_delay <- input$dep_delay
+    air_time <- input$air_time
+    carrier <- input$carrier
+    origin <- input$origin
+    dest <- input$dest
+    
+    prediction <- predict_delay(distance, dep_delay, air_time, carrier, origin, dest)
+    
+    output$predictions <- renderTable({
+      data.frame(
+        Distance = distance,
+        Retard_Départ = dep_delay,
+        Temps_Vol = air_time,
+        Compagnie = carrier,
+        Aéroport_Départ = origin,
+        Aéroport_Arrivée = dest,
+        Prédiction_Retard_Arrivée = prediction
+      )
+    })
+  })
+  
+  # Créer un graphique de dispersion
+  output$scatterPlot <- renderPlot({
+    req(input$xvar, input$yvar, input$color)
+    
+    query <- sprintf("SELECT %s, %s, %s FROM traffic_data", input$xvar, input$yvar, input$color)
+    data <- dbGetQuery(con, query)
+    
+    ggplot(data, aes_string(x = input$xvar, y = input$yvar, color = input$color)) +
+      geom_point() +
+      labs(x = input$xvar, y = input$yvar, color = input$color) +
+      theme_minimal()
+  })
   
   ##########################Requêtes sql################################################
   
@@ -388,14 +444,7 @@ server <- function(input, output, session) {
   
   ########################################################################
   
-  # Exemples de prédictions
-  output$predictions <- renderTable({
-    # Génération de données de prédiction factices pour l'exemple
-    data.frame(
-      Date = Sys.Date() + 0:4,
-      Prediction = c(100, 150, 200, 250, 300)
-    )
-  })
+
   
   # Fermeture de la connexion à la base de données à la fin de la session
   session$onSessionEnded(function() {
