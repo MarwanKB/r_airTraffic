@@ -1,6 +1,7 @@
 # Auteur: Liticia
 # Date: 2024-06-11
 
+#Import library
 library(shiny)
 library(shinythemes)
 library(DBI)
@@ -10,7 +11,7 @@ library(leaflet)
 library(dplyr)
 library(plotly)
 
-# Connexion à la base de données (ajustez les paramètres selon vos besoins)
+# Connexion à la base de données 
 con <- dbConnect(RMySQL::MySQL(), 
                  dbname = "traffic-aerien_db",
                  host = "mysql-traffic-aerien.alwaysdata.net",
@@ -71,10 +72,10 @@ ui <- navbarPage(
                  }
                "))
              ),
-             h1("AirTraffic Insights", class = "title"),
+             h1("AirTrafic Insights", class = "title"),
              img(src = "https://static.vecteezy.com/system/resources/previews/000/550/634/original/airplane-flying-vector-icon.jpg", height = "300px", style = "display: block; margin-left: auto; margin-right: auto;"),
              br(),
-             p("Bienvenue sur notre projet de visualisation et d'analyse prédictive du trafic. Ce projet a pour but de fournir des insights utiles à la prise de décision à partir des données historiques de trafic.", style = "text-align: center; z-index: 1; position: relative;"),
+             p("Bienvenue sur notre application de visualisation et d'analyse prédictive du trafic aérien. Cette webApp a pour but de fournir des insights utiles à la prise de décision à partir des données de trafic.", style = "text-align: center; z-index: 1; position: relative;"),
              
              
              div(class = "team-section", style = "display: flex;",
@@ -108,30 +109,72 @@ ui <- navbarPage(
            fluidPage(
              h2("Questions & Réponses", style = "color: black; text-align: center;"),
              br(),
-             p("Q: Quelle est la période des données utilisées?",
+             p("Q: Quel est le nombre total d’aéroports?",
                br(),
-               "R: Les données couvrent la période de janvier 2020 à décembre 2023."),
+               "R: Le nombre total d’aéroports est de 1458."),
              br(),
-             p("Q: Quels types de données sont analysés?",
+             p("Q: Combien y a-t-il d’aéroports de départ?",
                br(),
-               "R: Les données incluent le volume de trafic, les incidents signalés, et les conditions météorologiques."),
+               "R: Il y a 3 aéroports de départ."),
              br(),
-             p("Q: Quels modèles de prédiction sont utilisés?",
+             p("Q: Combien y a-t-il d’aéroports de destination?",
                br(),
-               "R: Nous utilisons des modèles de régression linéaire et des forêts aléatoires.")
+               "R: Il y a 103 aéroports de destination."),
+             br(),
+             p("Q: Combien d’aéroports ne passent pas à l’heure d’été?",
+               br(),
+               "R: Il y a 23 aéroports qui ne passent pas à l’heure d’été."),
+             br(),
+             p("Q: Combien y a-t-il de fuseaux horaires différents?",
+               br(),
+               "R: Il y a 10 fuseaux horaires différents."),
+             br(),
+             p("Q: Combien y a-t-il de compagnies aériennes?",
+               br(),
+               "R: Il y a 16 compagnies aériennes."),
+             br(),
+             p("Q: Quel est le nombre total d’avions?",
+               br(),
+               "R: Le nombre total d’avions est de 3322."),
+             br(),
+             p("Q: Combien de vols ont été annulés?",
+               br(),
+               "R: Il y a eu 6481 vols annulés."),
+             br(),
+             p("Q: Combien de vols partent des aéroports de NYC vers Seattle?",
+               br(),
+               "R: 2736 vols partent des aéroports de NYC vers Seattle."),
+             br(),
+             p("Q: Combien de compagnies desservent Seattle depuis NYC?",
+               br(),
+               "R: 5 compagnies desservent Seattle depuis NYC."),
+             br(),
+             p("Q: Combien d’avions «uniques» desservent Seattle depuis NYC?",
+               br(),
+               "R: 857 avions «uniques» desservent Seattle depuis NYC.")
            )),
+  
+  
   
   # Page Visualisations
   tabPanel("Visualisations",
            fluidPage(
              h2("Visualisations", style = "color: black; text-align: center;"),
              plotlyOutput("plot1"),
+             br(),
              plotlyOutput("plot2"),
+             br(),
              plotlyOutput("plot3"),
+             br(),
              plotlyOutput("plot4"),
+             br(),
              plotlyOutput("plot5"),
+             br(),
              plotlyOutput("plot6"),
-             plotlyOutput("plot7")
+             br(),
+             plotlyOutput("plot7"),
+             br(),
+             leafletOutput("plot8")
            )),
   
   # Page Prédictions
@@ -139,11 +182,21 @@ ui <- navbarPage(
            fluidPage(
              h2("Résultats de Prédiction", style = "color: black; text-align: center;"),
              tableOutput("predictions")
-           ))
-)
+           )),
+
+
+
+  # Footer
+  tags$footer(
+    p("© 2024 AirTrafic. Tous droits réservés.", class = "footer")
+  )
+  )
+
 
 # Serveur
 server <- function(input, output, session) {
+  
+  ##########################Requêtes sql################################################
   
   # Requête pour récupérer le nombre de destinations desservies par chaque compagnie aérienne
   airline_destinations <- dbGetQuery(con, "
@@ -180,6 +233,70 @@ server <- function(input, output, session) {
     LIMIT 10
   ")
   
+  # Requête SQL pour agréger les données par mois et obtenir le nombre de vols par mois
+  monthly_traffic <- dbGetQuery(con, "
+  SELECT MONTH(time_hour) AS month, COUNT(*) AS num_flights
+  FROM flights
+  GROUP BY MONTH(time_hour)
+  ")
+  
+  # Requête SQL pour filtrer les vols selon différentes conditions et obtenir le nombre de vols correspondant à chaque critère
+  filtered_flights <- list()
+  
+  # Filtrer les vols pour le 1er janvier
+  filtered_flights$january_1st <- dbGetQuery(con, "
+  SELECT COUNT(*) AS num_flights
+  FROM flights
+  WHERE MONTH(time_hour) = 1 AND DAY(time_hour) = 1
+")
+  
+  # Filtrer les vols pour novembre ou décembre
+  filtered_flights$november_december <- dbGetQuery(con, "
+  SELECT COUNT(*) AS num_flights
+  FROM flights
+  WHERE MONTH(time_hour) IN (11, 12)
+")
+  
+  # Filtrer les vols pour les jours spéciaux (25/12, 01/01, 04/07, 29/11)
+  filtered_flights$special_days <- dbGetQuery(con, "
+  SELECT COUNT(*) AS num_flights
+  FROM flights
+  WHERE DATE(time_hour) IN ('2024-12-25', '2025-01-01', '2025-07-04', '2025-11-29')
+")
+  
+  # Filtrer les vols pour l'été (juillet, août et septembre)
+  filtered_flights$summer <- dbGetQuery(con, "
+  SELECT COUNT(*) AS num_flights
+  FROM flights
+  WHERE MONTH(time_hour) IN (7, 8, 9)
+")
+  
+  # Filtrer les vols pour l'heure de départ entre minuit et 6h
+  filtered_flights$midnight_to_six <- dbGetQuery(con, "
+  SELECT COUNT(*) AS num_flights
+  FROM flights
+  WHERE HOUR(sched_dep_time) BETWEEN 0 AND 6
+")
+  
+  # Requête pour récupérer la relation entre l'heure de décollage et le retard moyen
+  delay_by_hour <- dbGetQuery(con, "
+    SELECT HOUR(STR_TO_DATE(DEP_TIME, '%H%M')) AS dep_hour, AVG(arr_delay) AS avg_arr_delay
+    FROM flights
+    GROUP BY dep_hour
+  ")
+  
+  # Requête SQL ajustée pour compter les vols annulés par aéroport
+  airports_cancelled_flights <- dbGetQuery(con, "
+  SELECT a.faa, a.name, a.lat, a.lon, SUM(CASE WHEN f.arr_delay IS NULL THEN 1 ELSE 0 END) AS cancelled_count
+  FROM airports a
+  LEFT JOIN flights f ON a.faa = f.origin
+  GROUP BY a.faa, a.name, a.lat, a.lon
+")
+  
+  
+  
+  
+  ###########################Graphiques#########################################
 
   # Graphique du nombre de destinations desservies par chaque compagnie aérienne
   output$plot1 <- renderPlotly({
@@ -222,14 +339,8 @@ server <- function(input, output, session) {
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
   })
   
-  # Requête SQL pour agréger les données par mois et obtenir le nombre de vols par mois
-  monthly_traffic <- dbGetQuery(con, "
-  SELECT MONTH(time_hour) AS month, COUNT(*) AS num_flights
-  FROM flights
-  GROUP BY MONTH(time_hour)
-  ")
   
-  # Création du graphique interactif avec Plotly
+  # Graphique de l'évolution du trafic aéroportuaire par mois
   output$plot5 <- renderPlotly({
     plot_ly(monthly_traffic, x = ~month, y = ~num_flights, type = 'scatter', mode = 'lines+markers') %>%
       layout(title = "Évolution du trafic aéroportuaire par mois",
@@ -238,46 +349,7 @@ server <- function(input, output, session) {
   })
   
   
-  #############plot6#################
-  # Requête SQL pour filtrer les vols selon différentes conditions et obtenir le nombre de vols correspondant à chaque critère
-  filtered_flights <- list()
-  
-  # Filtrer les vols pour le 1er janvier
-  filtered_flights$january_1st <- dbGetQuery(con, "
-  SELECT COUNT(*) AS num_flights
-  FROM flights
-  WHERE MONTH(time_hour) = 1 AND DAY(time_hour) = 1
-")
-  
-  # Filtrer les vols pour novembre ou décembre
-  filtered_flights$november_december <- dbGetQuery(con, "
-  SELECT COUNT(*) AS num_flights
-  FROM flights
-  WHERE MONTH(time_hour) IN (11, 12)
-")
-  
-  # Filtrer les vols pour les jours spéciaux (25/12, 01/01, 04/07, 29/11)
-  filtered_flights$special_days <- dbGetQuery(con, "
-  SELECT COUNT(*) AS num_flights
-  FROM flights
-  WHERE DATE(time_hour) IN ('2024-12-25', '2025-01-01', '2025-07-04', '2025-11-29')
-")
-  
-  # Filtrer les vols pour l'été (juillet, août et septembre)
-  filtered_flights$summer <- dbGetQuery(con, "
-  SELECT COUNT(*) AS num_flights
-  FROM flights
-  WHERE MONTH(time_hour) IN (7, 8, 9)
-")
-  
-  # Filtrer les vols pour l'heure de départ entre minuit et 6h
-  filtered_flights$midnight_to_six <- dbGetQuery(con, "
-  SELECT COUNT(*) AS num_flights
-  FROM flights
-  WHERE HOUR(sched_dep_time) BETWEEN 0 AND 6
-")
-  
-  # Création des visualisations pour illustrer les résultats
+  # Graphique des visualisations pour illustrer les résultats
   output$plot6 <- renderPlotly({
     labels <- c("1er janvier", "Novembre ou Décembre", "Jours spéciaux", "Été", "Départ entre minuit et 6h")
     values <- c(filtered_flights$january_1st$num_flights, filtered_flights$november_december$num_flights,
@@ -288,31 +360,33 @@ server <- function(input, output, session) {
       layout(title = "Nombre de vols selon différentes conditions")
   })
   
-  #############plot7###########
-  # Requête SQL pour obtenir les données sur les retards de départ
-  delay_data <- dbGetQuery(con, "
-  SELECT HOUR(sched_dep_time) AS dep_hour, dep_delay
-  FROM flights
-")
   
-  # Filtrage des valeurs manquantes côté R
-  delay_data <- na.omit(delay_data)
-  
-  # Calcul du retard moyen par heure de décollage
-  delay_by_hour <- aggregate(dep_delay ~ dep_hour, data = delay_data, FUN = mean)
-  
-  # Création du plot7 pour illustrer la relation entre l'heure de décollage et le retard moyen
+  # Graphique 7: Relation entre l'heure de décollage et le retard moyen
   output$plot7 <- renderPlotly({
-    ggplot(delay_by_hour, aes(x = dep_hour, y = dep_delay)) +
+    plot7 <- ggplot(delay_by_hour, aes(x = dep_hour, y = avg_arr_delay)) +
+      geom_line() +
       geom_point() +
-      geom_smooth(method = "lm", se = FALSE) +
-      labs(title = "Relation entre l'heure de décollage et le retard moyen",
-           x = "Heure de décollage",
-           y = "Retard moyen (minutes)") +
-      theme_minimal()
+      labs(x = "Heure de décollage", y = "Retard moyen à l'arrivée (minutes)", title = "Relation entre l'heure de décollage et le retard moyen") +
+      theme(plot.title = element_text(hjust = 0.5))
+  })
+  
+  # Graphique 8: Carte des aéroports avec les vols annulés
+  output$plot8 <- renderLeaflet({
+    leaflet(data = airports_cancelled_flights) %>%
+      addTiles() %>%
+      addCircleMarkers(~lon, ~lat,
+                       label = ~paste0(name, ": ", cancelled_count, " vols annulés"),
+                       color = ~ifelse(cancelled_count > 100, "red", "blue"),
+                       radius = ~sqrt(cancelled_count) * 5) %>%
+      addControl(
+        html = "<h4>Carte des aéroports avec les vols annulés</h4>",  # HTML pour le titre
+        position = "topright"  # Position du titre sur la carte (en haut à droite)
+      )
   })
   
   
+  
+  ########################################################################
   
   # Exemples de prédictions
   output$predictions <- renderTable({
